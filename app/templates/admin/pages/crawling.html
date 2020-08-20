@@ -1,0 +1,162 @@
+{% extends "admin/layout/index.html" %}
+
+{% block stylesheets %}
+
+{% endblock stylesheets %}
+
+{% block content %}
+<div id="cover-spin"></div>
+<div style="height: 100% !important">
+    <div class="card-header py-3 mb-4">
+        <h6 class="m-0 font-weight-bold text-gray-800">Crawling</h6>
+    </div>    
+    <div class="row" style="margin-left:0 !important; margin-right:0 !important">
+        <!-- Page Heading -->
+        <div class="col col-lg-12">
+            <form class="user" method="post" action="/admin/crawling/processcrawl">
+            {{ form.hidden_tag() }}
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group"> 
+                            {{ form.keyword(placeholder="Keyword", class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group"> 
+                            {{ form.maxtweet(placeholder="Max Tweet", class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="col">
+                        <!--Date picker -->
+                        <div class="form-group"> 
+                            <div class="form-group pmd-textfield pmd-textfield-floating-label">
+                                {{ form.startdate(placeholder="Start Date", class="form-control") }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <!--Date picker -->
+                        <div class="form-group"> 
+                            <div class="form-group pmd-textfield pmd-textfield-floating-label">
+                                {{ form.enddate(placeholder="End Date", class="form-control") }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="float-right">
+                    <div class="form-group">
+                        <div class="input-group mb-3">
+                            <button type="submit" class="btn btn-success btn-block">Crawl</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row" style="margin-left:0 !important; margin-right:0 !important">
+        <div class="col col-lg-12">
+            <table id="table_hastag" class="table table-striped table-bordered"  width="100%">
+                <thead>
+                    <tr>
+                        <th>Keyword</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDelete" tabindex="-1" role="dialog" aria-labelledby="myDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="note">Delete Keyword</h5>
+            <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+            </button>
+        </div>
+        <div class="modal-body" id="body-delete"></div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id='cancel' type="button" data-dismiss="modal">Cancel</button>
+            <button class="btn btn-danger" id='delete_save' type="button" data-dismiss="modal">Delete</button>
+        </div>
+        </div>
+    </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+
+    $(document).ready(function() {
+
+        function executeQuery()
+        {
+            $.ajax({
+                type        : "POST",
+                url         : "/admin/crawling/checkcrawling",
+                data        : JSON.stringify({ username: "{{username}}" }),
+                contentType : "application/json; charset=utf-8",
+                dataType    : "json",
+                success     : function(resp){
+                                    statuscrawling =  resp['statuscrawling']
+
+                                    if (statuscrawling == 0){
+                                        $("#cover-spin").css("display", "none");
+                                        table_hastag.ajax.reload(null, false);
+                                    }
+                            }
+            });
+            setTimeout(executeQuery, 5000);
+        };
+
+        session_crawling = "{{crawling}}"
+        if(session_crawling == "[]"){
+            $("#cover-spin").css("display", "none");
+        };
+       
+        var table_hastag = $('#table_hastag').DataTable( {
+                                "ajax": {
+                                    "type"          : "POST",
+                                    "url"           : "/admin/table/hastags",
+                                    "data"          : function () {
+                                                        return JSON.stringify(  {"username": "{{username}}"} );
+                                                      },
+                                    "contentType"   : "application/json; charset=utf-8",
+                                    "dataType"      : "json",
+                                },
+                                "scrollX": true,
+                                "columns": [
+                                    {   "data": "keyword" },
+                                    {   "data": "total" },
+                                    {   "data": null,
+                                        render: function (data, type, row) {
+                                            return '<button data-toggle="modal" data-target="#modalDelete"  class="btn btn-danger deleteKeyword">Delete</button>'
+                                        },
+                                        "targets": -1
+                                    }
+                                ]
+                            });
+        setTimeout(executeQuery, 10000);
+        $('#table_hastag tbody').on('click', 'button.deleteKeyword', function (){
+            var keyword = table_hastag.row( $(this).parents('tr') ).data()['keyword'];
+            $('#body-delete').text("You are delete '" + keyword + "' that means delete trainingset, clustered, preprocessing and model" );
+            $(document).on('click','#delete_save',function(){
+                $.ajax({
+                    type        : "POST",
+                    url         : "/admin/table/hastags/delete",
+                    data        : JSON.stringify( { "username": "{{username}}", "keyword": keyword } ),
+                    contentType : "application/json; charset=utf-8",
+                    dataType    : "json",
+                    success     : function(resp){
+                                    table_hastag.ajax.reload(null, false);
+                                }
+                });
+            });
+        });
+    });
+</script>
+{% endblock javascripts %}

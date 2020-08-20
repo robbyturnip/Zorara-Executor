@@ -1,0 +1,235 @@
+{% extends "admin/layout/index.html" %}
+
+{% block stylesheets %}
+
+{% endblock stylesheets %}
+
+{% block content %}
+<div style="height: 100% !important">
+    <div class="card-header py-3 mb-4">
+        <h6 class="m-0 font-weight-bold text-gray-800">Visualitation</h6>
+    </div>
+    <div class="row" style="margin-left:0 !important; margin-right:0 !important">
+        <div class="col col-lg-12">
+            <label for="dropdown">Select model keyword:</label>
+            <div class="form-group row">
+                <div class="col-sm-4">
+                    <div class="input-group mb-3">
+                        <select class="form-control" id="dropdown-select">
+                            {% for dictionary in keyword %}
+                            <option value='{{dictionary.value}}'>{{dictionary.text}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-1" id="predict-button-div">
+                    <button id="visual-button" class="btn btn-primary">Show</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" id='visual-content' style="margin-left:0 !important; margin-right:0 !important">
+        <div class="col col-lg-12" style="text-align: center;">
+            <div class="col col-sm-6" style="display: inline-block">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Sentiment Tweet</h6>
+                    </div>
+                    <div class="card-body">
+                    <div class="chart-bar" id="chart-bar">
+                        <canvas id="bar-chart"></canvas>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col col-sm-6" style="display: inline-block"> 
+                <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Sentiment Tweet</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4" id='chart-donut'>
+                    <canvas id="pie-chart"></canvas>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+          
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+    $(document).ready(function() {
+        $('#visual-content').css('display','none');
+        $('#visual-button').click(function(){
+                $('#visual-content').css('display','flex');
+                var keyword_model = $('#dropdown-select').children("option:selected").val();
+                $.ajax({
+                    type        : "POST",
+                    url         : "/admin/visualitation/show",
+                    data        : JSON.stringify( { "username": "{{username}}","keyword": keyword_model} ),
+                    contentType : "application/json; charset=utf-8",
+                    dataType    : "json",
+                    success     : function(data){
+                                    var total = 0;
+                                    var label = [];
+                                    var angka = [];
+                                    for (var i in data) {
+                                        label.push (data[i].label);
+                                        angka.push (data[i].value);
+                                        total = total + data[i].value;
+                                    }
+                                    $('#bar-chart').remove();
+                                    $('#chart-bar').append('<canvas id="bar-chart"></canvas>');
+
+                                    var data_bar  = [{
+                                                    backgroundColor:  ["rgba(247,70,74,0.2)","rgba(77,83,96,0.2)","rgba(70,191,189,0.2)"],
+                                                    borderColor:      ['rgba(247,70,74,1)','rgba(77,83,96,1)','rgba(70,191,189,1)'],
+                                                    borderWidth: 1,
+                                                    data: angka,
+                                                    label: 'Sentiment'
+                                                }];
+
+                                    var options_bar = {
+                                                        plugin_one_attribute: true,
+                                                        maintainAspectRatio: false,
+                                                        responsive: true,
+                                                        layout: {
+                                                            padding: {
+                                                            top: 30
+                                                            }
+                                                        },
+                                                        legend: {
+                                                            display: false
+                                                        },
+                                                        tooltips: {
+                                                            enabled: true
+                                                        },
+                                                        plugins: {
+                                                            datalabels: {
+                                                                display: false
+                                                            }
+                                                        },
+                                                        scales: {
+                                                        yAxes: [{
+                                                            ticks: {
+                                                            
+                                                                min: 0,
+                                                                max: total,
+                                                                callback: function(value){
+                                                                    let dataArr = angka
+                                                                    let sum = 0
+                                                                    dataArr.map(data_bar => {
+                                                                        sum += data_bar;
+                                                                    });
+                                                                    let percentage = (value*100 / sum).toFixed(0);
+                                                                    return percentage+ "%"
+                                                                }
+                                                                }
+                                                        }]
+                                                        }
+                                                    };
+
+                                    var bar_chart = document.getElementById ('bar-chart'). getContext ('2d');
+                                    var chart = new Chart (bar_chart, {
+                                        type: 'bar',
+                                        data: {
+                                            labels: label,
+                                            datasets: data_bar
+                                        },
+                                        options:  options_bar
+                                    });
+
+                                    Chart.plugins.register({
+                                        afterDatasetsDraw: function(chart, easing) {
+                                            if (chart.config.options.plugin_one_attribute) {
+                                                var bar_chart = chart.ctx;
+                                                chart.data.datasets.forEach(function (dataset, i) {
+                                                    var meta = chart.getDatasetMeta(i);
+                                                    if (!meta.hidden) {
+                                                        meta.data.forEach(function(element, index) {
+                                                            // Draw the text in black, with the specified font
+                                                            bar_chart.fillStyle = 'rgb(0, 0, 0)';
+
+                                                            var fontSize = 12;
+                                                            var fontStyle = 'normal';
+                                                            var fontFamily = 'Helvetica Neue';
+                                                            bar_chart.font = Chart.helpers.fontString(fontSize, fontStyle, fontFamily);
+
+                                                            // Just naively convert to string for now
+                                                            var dataString =  dataset.data[index].toString()  + ' (' + (dataset.data[index]*100 / total).toFixed(2) + '%)' ;
+
+                                                            // Make sure alignment settings are correct
+                                                            bar_chart.textAlign = 'center';
+                                                            bar_chart.textBaseline = 'middle';
+
+                                                            var padding = 5;
+                                                            var position = element.tooltipPosition();
+                                                            bar_chart.fillText(dataString, position.x, position.y - (fontSize / 2) - padding);
+                                                        });
+                                                    }
+                                                });
+                                            }
+                                            
+                                        }
+                                    });
+
+                                    $('#pie-chart').remove();
+                                    $('#chart-donut').append('<canvas id="pie-chart"></canvas>');
+                                    var data_pie  = [{
+                                                    backgroundColor: ["rgba(247,70,74,0.2)","rgba(77,83,96,0.2)","rgba(70,191,189,0.2)"],
+                                                    borderColor: [ 'rgba(247,70,74,1)','rgba(77,83,96,1)','rgba(70,191,189,1)'],
+                                                    borderWidth: 1,
+                                                    data: angka,
+                                                    label: 'Total'
+                                                }];
+                                    var sum_total = 0 ; 
+                                    var options_donut = {
+                                                tooltips: {
+                                                    enabled: true
+                                                },
+                                                plugins: {
+                                                    datalabels: {
+                                                        formatter: (value, donut_chart) => {
+                                                            let sum = 0;
+                                                            let dataArr = donut_chart.chart.data.datasets[0].data;
+                                                            dataArr.map(data_pie => {
+                                                                sum += data_pie;
+                                                            });
+                                                            let percentage = (value*100 / sum).toFixed(2)+"%";
+                                                            return percentage;
+                                                        },
+                                                        display: false
+                                                    }
+                                                }
+                                            };
+                                    label_donut = [];
+                                    for(i=0; i<label.length; i++){
+                                        label_donut.push(label[i] + ' - (' +  (angka[i]*100 / total).toFixed(2) + "%" + ')');
+                                    }
+                                    var donut_chart = document.getElementById ('pie-chart'). getContext ('2d');
+                                    var chart = new Chart (donut_chart, {
+                                        type: 'pie',
+                                        data: {
+                                            labels : label_donut,
+                                            datasets: data_pie
+                                        },
+                                        options: options_donut
+                                    });
+
+                                    
+                        }
+                });
+            });
+
+
+        
+    });
+
+</script>
+{% endblock javascripts %}

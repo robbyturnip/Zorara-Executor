@@ -1,0 +1,78 @@
+{% extends "admin/layout/index.html" %}
+
+{% block stylesheets %}
+
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div id="cover-spin"></div>
+<div style="height: 100% !important">
+    <div class="card-header py-3 mb-4">
+        <h6 class="m-0 font-weight-bold text-gray-800">Predict</h6>
+    </div>  
+    <div class="row" style="margin-left:0 !important; margin-right:0 !important">
+        <div class="col col-lg-12">
+            <label for="dropdown">Select model keyword:</label>
+            <div class="form-group row">
+                <div class="col-sm-4">
+                    <div class="input-group mb-3">
+                        <select class="form-control" id="dropdown-select">
+                            {% for dictionary in keyword %}
+                            <option value='{{dictionary.value}}'>{{dictionary.text}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group row" >
+                <div class="col col-lg-12" style="text-align: center;">
+                    <div class="col col-sm-6 mb-4" style="display: inline-block">
+                        <label for="text_area">Type tweet in bottom of this text</label>
+                        <textarea class="form-control" id="tweet" rows="7"></textarea>
+                    </div>
+                    <div class="col col-sm-6 mb-4" style="display: inline-block">
+                        <button id="predict-button" class="btn btn-success">Predict</button>
+                    </div>
+                    <div class="col col-sm-6 mb-4" style="display: inline-block">      
+                        <div id='cluster-emoticon'></div>
+                        <label id="label-cluster"></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+          
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+    $(document).ready(function() {
+        $("#cover-spin").css("display", "none");
+        $('#predict-button').click(function(){
+                var tweet = $("#tweet").val();
+                var keyword_model = $('#dropdown-select').children("option:selected").val();
+
+                $.ajax({
+                    type        : "POST",
+                    url         : "/admin/predict/predict",
+                    data        : JSON.stringify( { "username": "{{username}}", "tweet": tweet, "keyword": keyword_model} ),
+                    contentType : "application/json; charset=utf-8",
+                    dataType    : "json",
+                    beforeSend  : function(){
+                                    $("#cover-spin").css("display", "block");
+                                },
+                    success     : function(resp){
+                                        
+                                        $("#cover-spin").css("display", "none");
+                                        $('#label-cluster').text(resp['cluster']);
+                                        $("#cluster-emoticon").empty();
+                                        $("#cluster-emoticon").append("<span class='label label-important' style='font-size: 50px;'>"+resp['emoticon']+"</span>");
+                                }
+                });
+            });
+    });
+
+</script>
+{% endblock javascripts %}

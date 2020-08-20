@@ -1,0 +1,273 @@
+{% extends "admin/layout/index.html" %}
+
+{% block stylesheets %}
+
+{% endblock stylesheets %}
+
+{% block content %}
+<div id="cover-spin"></div>
+    <div style="height: 100% !important">
+       <div class="card-header py-3 mb-4">
+            <h6 class="m-0 font-weight-bold text-gray-800">Training</h6>
+        </div>
+        <div class="row" style="margin-left:0 !important; margin-right:0 !important">
+            <div class="col col-lg-12">
+                <table id="table_training" class="table table-striped table-bordered"  width="100%">
+                    <thead>
+                        <tr>
+                            <th>Keyword</th>
+                            <th>Total</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        
+        <div class="modal fade" id="modalModelForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h4 class="modal-title w-100 font-weight-bold">Setting Variable Training</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body mx-3">
+
+                    <div class="form-group row">
+                        <div class="col-sm-12 text-center">
+                            <label for="">Max Iterations</label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 text-center">
+                            <input class="form-control"  autocomplete="off" id="iteration" required type="number" value="" min="1" max="1000" step="1"/>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6 text-center">
+                            <label for="">Label Centroid</label>
+                        </div>
+                        <div class="col-sm-6 text-center">
+                            <label for="">ID Tweet</label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            <select class="form-control cluster" id="dropdown-select">
+                                {% for dictionary in emoticon %}
+                                <option value='{{dictionary.id_label}}'>{{dictionary.dec |safe}}<label> {{dictionary.label}} </label></option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <input class="form-control centroid" autocomplete="off" required type="number" value="" min="0" max="100" step="1"/>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            <select class="form-control cluster" id="dropdown-select">
+                                {% for dictionary in emoticon %}
+                                <option value='{{dictionary.id_label}}'>{{dictionary.dec |safe }}<label> {{dictionary.label}} </label></option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <input class="form-control centroid" autocomplete="off" required type="number" value="" min="0" max="100" step="1"/>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            <select class="form-control cluster" id="dropdown-select">
+                                {% for dictionary in emoticon %}
+                                <option value='{{dictionary.id_label}}'>{{dictionary.dec |  safe}}<label> {{dictionary.label}} </label></option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <input class="form-control centroid" autocomplete="off" required type="number" value="" min="0" max="100" step="1"/>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="input-group mb-3">
+                            <button id="train" data-dismiss="modal" class="btn btn-success btn-block">Train</button>
+                        </div>
+                    </div>  
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block javascripts %}
+    <script src="/static/assets/js/bootstrap-input-spinner.js"></script>
+<script>
+$(document).ready(function() {
+    var keyword = '';
+    $("input[type='number']").inputSpinner();
+    function executeQuery()
+    {
+        $.ajax({
+            type        : "POST",
+            url         : "/admin/training/checktraining",
+            data        : JSON.stringify({ username: "{{username}}" }),
+            contentType : "application/json; charset=utf-8",
+            dataType    : "json",
+            success     : function(resp){
+                                console.log(resp)
+                                statuspreprocessing =  resp['statustraining']
+                                if (statuspreprocessing == 0){
+                                    $("#cover-spin").css("display", "none");
+                                    table_training.ajax.reload(null, false);
+                                }
+                        }
+        });
+        table_training.ajax.reload(null, false);
+        setTimeout(executeQuery, 50000);
+    };
+    setTimeout(executeQuery, 50000);
+    function remove_duplicates(arr, cluster_length) {
+        var uniquecentroid = [];
+        
+        $.each(arr, function(i, el){
+            if($.inArray(el.replace(/\./g,''), uniquecentroid) === -1) uniquecentroid.push(el);
+        });   
+
+        if(uniquecentroid.length == cluster_length){
+            return uniquecentroid     
+        }else{
+            alert('Centroid Tidak Boleh Sama')
+            return false
+        }
+    };
+
+    function checkIfArrayIsUnique(myArray) 
+    {
+        for (var i = 0; i < myArray.length; i++) 
+        {
+            for (var j = 0; j < myArray.length; j++) 
+            {
+                if (i != j) 
+                {
+                    if (myArray[i] == myArray[j]) 
+                    {   
+                        alert('Cluster Tidak Boleh Sama')
+                        return false; // means there are duplicate values
+                    }
+                }
+            }
+        }
+        return true; // means there are no duplicate values.
+    }
+
+    session_training = "{{training}}";
+    console.log(session_training)
+    if(session_training == "[]"){
+        $("#cover-spin").css("display", "none");
+    };
+
+    var table_training = $('#table_training').DataTable( {
+                            "ajax": {
+                                "type"          : "POST",
+                                "url"           : "/admin/table/training",
+                                "data"          : function () {
+                                                    return JSON.stringify(  {"username": "{{username}}"} );
+                                                    },
+                                "contentType"   : "application/json; charset=utf-8",
+                                "dataType"      : "json",
+                            },
+                            "scrollX": true,
+                            "columns": [
+                                {   "data": "keyword" },
+                                {   "data": "total" },
+                                {   "data": null,
+                                    render: function (data, type, row) {
+                                        return '<button data-toggle="modal" data-target="#modalModelForm" class="btn btn-success trainingKeyword">Training</button>'
+                                    },
+                                    "targets": -1
+                                }
+                            ]
+                        });
+    
+    $('#table_training tbody').on('click', 'button.trainingKeyword', function (){
+        keyword = table_training.row( $(this).parents('tr') ).data()['keyword'];
+        
+         $.ajax({
+                    type        : "POST",
+                    url         : "/admin/table/hastags/min_max",
+                    data        : JSON.stringify( { "username": "{{username}}", "keyword": keyword } ),
+                    contentType : "application/json; charset=utf-8",
+                    dataType    : "json",
+                    beforeSend  : function(){
+                                $("#cover-spin").css("display", "block");
+                    },
+                    success     : function(resp){
+                                    $("#cover-spin").css("display", "none");
+                                    
+                                    $(".centroid").attr({
+                                        "max" : resp['max'],
+                                        "min" : resp['min']
+                                    });
+                                   
+                                }
+                });
+    });
+    $('#train').click(function(){        
+            var empty_centroid = false;
+            var empty_iterasi  = false;
+
+            $('.centroid').each(function(){
+                if($(this).val()==""){
+                    empty_centroid =true;
+                    alert("ID Tweet tidak boleh kosong");
+                    return false;
+                }
+            });
+
+            $('#iteration').each(function(){
+                if($(this).val()==""){
+                    empty_iterasi =true;
+                    alert("Iterasi tidak boleh kosong");
+                    return false;
+                }
+            });
+
+            
+            if(empty_centroid == false && empty_iterasi == false){ 
+                var cluster         = $('.cluster').map(function() {return $(this).val()}).get();
+                var cluster_check   = checkIfArrayIsUnique(cluster);
+                var centroid        = $('.centroid').map(function() {return $(this).val().replace(/,/g, "");}).get()
+                var centroid_check  = remove_duplicates(centroid, cluster.length);
+                var iteration       = $('#iteration').val();
+
+                if(centroid_check==false){
+                    return false
+                }
+                if(cluster_check==false){
+                    return false
+                }
+                console.log(centroid_check, cluster);
+                $.ajax({
+                    type        : "POST",
+                    url         : "/admin/table/hastags/train",
+                    data        : JSON.stringify( { "username": "{{username}}", "keyword": keyword, "iteration":iteration,  "centroid": centroid_check , "cluster": cluster } ),
+                    contentType : "application/json; charset=utf-8",
+                    dataType    : "json",
+                    success     : function(resp){
+                                    $("#cover-spin").css("display", "block");
+                                }
+                });
+            }
+        else{
+            return false
+        }
+        });
+});
+</script>
+{% endblock javascripts %}

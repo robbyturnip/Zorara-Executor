@@ -1,0 +1,76 @@
+{% extends "admin/layout/index.html" %}
+
+{% block stylesheets %}
+
+{% endblock stylesheets %}
+
+{% block content %}
+<div style="height: 100% !important">
+    <div class="card-header py-3 mb-4">
+        <h6 class="m-0 font-weight-bold text-gray-800">Table Cluster</h6>
+    </div>
+    <div class="row" style="margin-left:0 !important; margin-right:0 !important">
+        <div class="col col-lg-12">
+            <h1 class="h3 mb-4 text-gray-800">Table Cluster Tweet</h1>
+            <p id="selectTriggerFilter"><label><b>Filter:</b></label><br></p>
+            <table id="table_cluster" class="table table-striped table-bordered"  width="100%">
+                <thead>
+                    <tr>
+                        <th>Keyword</th>
+                        <th>Tweet</th>
+                        <th>Cluster Name</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+
+    $(document).ready(function() {
+
+        function executeQuery()
+        {
+            table_cluster.ajax.reload(null, false);
+            setTimeout(executeQuery, 10000);
+        };
+
+        var table_cluster        =   $('#table_cluster').DataTable( {
+                                        "ajax": {
+                                            "type"          : "POST",
+                                            "url"           : "/admin/table/cluster",
+                                            "data"          : function () {
+                                                                return JSON.stringify(  {"username": "{{username}}"} );
+                                                            },
+                                            "contentType"   : "application/json; charset=utf-8",
+                                            "dataType"      : "json",
+                                        },
+                                        "scrollX": true,
+                                        "columns": [
+                                            {   "data": "keyword" },
+                                            {   "data": "tweet" },
+                                            {   "data": "cluster_name" }
+                                        ],
+                                        "deferRender": true,
+                                        initComplete: function() {
+                                        var column = this.api().column(0);
+
+                                        var select = $('<select class="filter"><option value=""></option></select>')
+                                            .appendTo('#selectTriggerFilter')
+                                            .on('change', function() {
+                                            var val = $(this).val();
+                                            column.search(val ? '^' + $(this).val() + '$' : val, true, false).draw();
+                                            });
+
+                                        column.data().unique().sort().each(function(d, j) {
+                                            select.append('<option value="' + d + '">' + d + '</option>');
+                                        });
+                                        }
+                                    });
+        setTimeout(executeQuery, 10000);
+    });
+</script>
+{% endblock javascripts %}

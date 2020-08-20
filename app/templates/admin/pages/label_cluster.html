@@ -1,0 +1,229 @@
+{% extends "admin/layout/index.html" %}
+
+{% block stylesheets %}
+
+{% endblock stylesheets %}
+
+{% block content %}
+<div style="height: 100% !important">
+    <div class="card-header py-3 mb-4">
+        <h6 class="m-0 font-weight-bold text-gray-800">Table Label</h6>
+    </div>
+    <div class="row" style="margin-left:0 !important; margin-right:0 !important">
+        <div class="col col-lg-12">
+            <div class="row" style="margin-bottom: 20px;">
+                <div class="col col-lg-12">
+                    <button data-toggle="modal" data-target="#modalAddForm" id="add_label" data-value="" class="btn btn-success float-left">Add Label</button>       
+                </div>
+            </div>
+            <table id="table_label" class="table table-striped table-bordered"  width="100%">
+                <thead>
+                    <tr>
+                        <th>ID Label</th>
+                        <th>Emoji</th>
+                        <th>Dec</th>
+                        <th>Label</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalAddForm" tabindex="-1" role="dialog" aria-labelledby="myAddModalLabel"aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header text-center">
+                <h4 class="modal-title w-100 font-weight-bold">Add Label</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body mx-3">
+
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <input class="form-control" id="input_label" name="input_label" placeholder="New Label" required="" type="text" value="">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <input class="form-control" id="input_dec" name="input_dec" placeholder="New Dec of Emoji Smiley" required="" type="text" value="">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-group mb-3">
+                        <button id="add_save" data-dismiss="modal" class="btn btn-success btn-block">Save</button>
+                    </div>
+                </div>  
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEditForm" tabindex="-1" role="dialog" aria-labelledby="myEditModalLabel"aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header text-center">
+                <h4 class="modal-title w-100 font-weight-bold">Edit Label</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body mx-3">
+
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <input class="form-control" id="new_label" name="new_label" required="" type="text" value="">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <input class="form-control" id="new_dec" name="new_dec"  required="" type="text" value="">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-group mb-3">
+                        <button id="edit_save" data-dismiss="modal" class="btn btn-success btn-block">Save</button>
+                    </div>
+                </div>  
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDelete" tabindex="-1" role="dialog" aria-labelledby="myDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="note">Delete Label</h5>
+              <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="body-delete"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id='cancel' type="button" data-dismiss="modal">Cancel</button>
+              <button class="btn btn-danger" id='delete_save' type="button" data-dismiss="modal">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+
+    $(document).ready(function() {
+
+        function executeQuery()
+        {
+            table_label.ajax.reload(null, false);
+            setTimeout(executeQuery, 10000);
+        };
+
+        var table_label       =     $('#table_label').DataTable( {
+                                        "ajax": {
+                                            "type"          : "POST",
+                                            "url"           : "/admin/table/label",
+                                            "data"          : function () {
+                                                                return JSON.stringify(  {"username": "{{username}}"} );
+                                                            },
+                                            "contentType"   : "application/json; charset=utf-8",
+                                            "dataType"      : "json",
+                                        },
+                                        "scrollX": true,
+                                        "columns": [
+                                            {   "data": "id_label" },
+                                            {   "data": "dec" },
+                                            {   "data": "decimal"},
+                                            {   "data": "label" },
+                                            {   "data": null,
+                                                render: function (data, type, row) {
+                                                    return '<button data-toggle="modal" data-target="#modalEditForm" class="btn btn-info edit_label">Edit</button>\
+                                                            <button data-toggle="modal" data-target="#modalDelete" class="btn btn-danger delete_label">Delete</button>'
+                                                },
+                                                "targets": -1
+                                            }
+                                        ]
+                                    });
+                                    
+        $('#table_label tbody').on('click', 'button.delete_label', function (){
+            var id_label = table_label.row( $(this).parents('tr') ).data()['id_label'];
+            $('#body-delete').text("You are delete id '" + id_label + "' from label" );
+            $('#delete_save').click(function(){
+                $.ajax({
+                    type        : "POST",
+                    url         : "/admin/label/delete",
+                    data        : JSON.stringify( { "username": "{{username}}", "id_label": id_label } ),
+                    contentType : "application/json; charset=utf-8",
+                    dataType    : "json",
+                    success     : function(resp){
+                                    table_label.ajax.reload(null, false);
+                                }
+                });
+            });
+        });
+
+        
+
+        $('#table_label tbody').on('click', 'button.edit_label', function (){
+            var id_label    = table_label.row( $(this).parents('tr') ).data()['id_label'];
+            var decimal     = table_label.row( $(this).parents('tr') ).data()['decimal'];
+            var label       = table_label.row( $(this).parents('tr') ).data()['label'];
+
+            $('#new_dec').val(decimal);
+            $('#new_label').val(label); 
+
+            $('#edit_save').click(function(){
+                var dec_label   =  $("#new_dec").val();
+                var label       =  $("#new_label").val();
+                $.ajax({
+                    type        : "POST",
+                    url         : "/admin/label/edit",
+                    data        : JSON.stringify( { "username": "{{username}}", "id_label": id_label, "dec_label": dec_label, "label": label } ),
+                    contentType : "application/json; charset=utf-8",
+                    dataType    : "json",
+                    success     : function(resp){
+                                    table_label.ajax.reload(null, false);
+                                    var data = ""
+                                }
+                });
+            });
+        });
+
+        $('#add_label').click(function(){ 
+            $("#input_label").val("");
+            $("#input_dec").val("");
+        });
+
+        $('#add_save').click(function(){ 
+                var label     = $("#input_label").val();
+                var dec_label = $("#input_dec").val();
+
+                console.log(label);
+                console.log(dec_label);
+
+                $.ajax({
+                    type        : "POST",
+                    url         : "/admin/label/add",
+                    data        : JSON.stringify( { "username": "{{username}}", "label": label, "dec_label": dec_label } ),
+                    contentType : "application/json; charset=utf-8",
+                    dataType    : "json",
+                    success     : function(resp){
+                                    table_label.ajax.reload(null, false);
+                                    $(".input").val("");
+                                }
+                });
+            });
+
+        setTimeout(executeQuery, 10000);
+
+    });
+</script>
+{% endblock javascripts %}

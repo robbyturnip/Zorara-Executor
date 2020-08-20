@@ -1,0 +1,137 @@
+{% if username %}
+    <!-- Sidebar -->
+    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+        <!-- Sidebar - Brand -->
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/admin">
+        <div class="sidebar-brand-text mx-3">{{ username }}</div>
+        </a>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider my-0">
+
+        <!-- Nav Item - Dashboard -->
+        <li class="nav-item active">
+            <a class="nav-link" href="/admin">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Crawling -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/crawling">
+                <i class="fas fa-fw fa-cubes"></i>
+                <span>Crawling</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Preprocessing -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/preproccessing">
+                <i class="fas fa-fw fa-filter"></i>
+                <span>Preprocessing</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Training -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/training">
+                <i class="fas fa-fw fa-cogs"></i>
+                <span>Training</span>
+            </a>
+        </li>
+
+
+        <!-- Nav Item - Predict -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/predict">
+                <i class="fas fa-fw fa-flask"></i>
+                <span>Predict</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Visiualitation -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/visualitation">
+                <i class="fas fa-fw fa-chart-area"></i>
+                <span>Visualitation</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Centroid Cluster -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/centroid">
+                <i class="fas fa-fw fa-database"></i>
+                <span>Table Centroid</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Cluster -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/cluster">
+                <i class="fas fa-fw fa-database"></i>
+                <span>Table Cluster</span>
+            </a>
+        </li>
+
+
+        <!-- Nav Item - Cluster -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/sse">
+                <i class="fas fa-fw fa-database"></i>
+                <span>Table SSE</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Table Preprocessing -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/table_preprocessing">
+                <i class="fas fa-fw fa-database"></i>
+                <span>Table Preprocessing</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Corpus -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/corpus">
+                <i class="fas fa-fw fa-database"></i>
+                <span>Table Corpus</span>
+            </a>
+        </li>
+        
+        <!-- Nav Item - Stopword -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/stopword">
+                <i class="fas fa-fw fa-database"></i>
+                <span>Table Stopword</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Kbba -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/kbba">
+                <i class="fas fa-fw fa-database"></i>
+                <span>Table Kbba</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Label -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/label">
+                <i class="fas fa-fw fa-database"></i>
+                <span>Table Label</span>
+            </a>
+        </li>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider d-none d-md-block">
+
+        <!-- Sidebar Toggler (Sidebar) -->
+        <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+        </div>
+
+    </ul>
+    <!-- End of Sidebar -->
+{% endif %}

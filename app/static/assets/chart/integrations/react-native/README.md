@@ -1,0 +1,1 @@
+Unlike other integrations, `react-native-fusioncharts` can only be used via `npm` because `React Native` does not support direct `<script>` inclusion of files. Please visit [installation](https://github.com/fusioncharts/react-native-fusioncharts "") page of `react-native-fusioncharts` for more detail.

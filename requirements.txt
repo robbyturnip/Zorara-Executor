@@ -1,0 +1,10 @@
+Flask==1.1.2
+Flask-WTF==0.14.3
+GetOldTweets3==0.0.11
+gevent==20.6.2
+greenlet==0.4.16
+gunicorn==20.0.4
+psycopg2=2.8.5
+Sastrawi==1.0.1
+scikit-learn==0.23.1
+

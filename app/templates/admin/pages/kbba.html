@@ -1,0 +1,228 @@
+{% extends "admin/layout/index.html" %}
+
+{% block stylesheets %}
+
+{% endblock stylesheets %}
+
+{% block content %}
+<div style="height: 100% !important">
+    <div class="card-header py-3 mb-4">
+        <h6 class="m-0 font-weight-bold text-gray-800">Table Kbba</h6>
+    </div>
+    <div class="row" style="margin-left:0 !important; margin-right:0 !important">
+        <div class="col col-lg-12">
+            <div class="row" style="margin-bottom: 20px;">
+                <div class="col col-lg-12">
+                    <button data-toggle="modal" data-target="#modalAddForm" id="add_kbba" data-value="" class="btn btn-success float-left">Add Kbba</button>       
+                </div>
+            </div>
+            <table id="table_kbba" class="table table-striped table-bordered"  width="100%">
+                <thead>
+                    <tr>
+                        <th>Alay</th>
+                        <th>Baku</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalAddForm" tabindex="-1" role="dialog" aria-labelledby="myAddModalLabel"aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header text-center">
+                <h4 class="modal-title w-100 font-weight-bold">Add Kbba</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body mx-3">
+
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <input class="form-control" id="input_alay" name="input_alay" placeholder="New Alay" required="" type="text" value="">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <input class="form-control" id="input_baku" name="input_baku" placeholder="New Baku" required="" type="text" value="">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-group mb-3">
+                        <button id="add_save" data-dismiss="modal" class="btn btn-success btn-block">Save</button>
+                    </div>
+                </div>  
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEditForm" tabindex="-1" role="dialog" aria-labelledby="myEditModalLabel"aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header text-center">
+                <h4 class="modal-title w-100 font-weight-bold">Edit Kbba</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body mx-3">
+
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <input class="form-control" id="alay_before" name="alay_before" required="" type="text" value="" readonly>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <input class="form-control" id="alay_after" name="alay_after" placeholder="New Alay" required="" type="text" value="">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <input class="form-control" id="baku_before" name="baku_before" required="" type="text" value="" readonly>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <input class="form-control" id="baku_after" name="baku_after" placeholder="New Baku" required="" type="text" value="">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-group mb-3">
+                        <button id="edit_save" data-dismiss="modal" class="btn btn-success btn-block">Save</button>
+                    </div>
+                </div>  
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDelete" tabindex="-1" role="dialog" aria-labelledby="myDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="note">Delete Kbba</h5>
+              <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="body-delete"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id='cancel' type="button" data-dismiss="modal">Cancel</button>
+              <button class="btn btn-danger" id='delete_save' type="button" data-dismiss="modal">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+
+    $(document).ready(function() {
+
+        function executeQuery()
+        {
+            table_kbba.ajax.reload(null, false);
+            setTimeout(executeQuery, 60000);
+        };
+
+        var table_kbba       =   $('#table_kbba').DataTable( {
+                                        "ajax": {
+                                            "type"          : "POST",
+                                            "url"           : "/admin/table/kbba",
+                                            "data"          : function () {
+                                                                return JSON.stringify(  {"username": "{{username}}"} );
+                                                            },
+                                            "contentType"   : "application/json; charset=utf-8",
+                                            "dataType"      : "json",
+                                        },
+                                        "scrollX": true,
+                                        "columns": [
+                                            {   "data": "alay" },
+                                            {   "data": "baku" },
+                                            {   "data": null,
+                                                render: function (data, type, row) {
+                                                    return '<button data-toggle="modal" data-target="#modalEditForm" class="btn btn-info edit_kbba">Edit</button>\
+                                                            <button data-toggle="modal" data-target="#modalDelete"  class="btn btn-danger delete_kbba">Delete</button>'
+                                                },
+                                                "targets": -1
+                                            }
+                                        ]
+                                    });
+
+        $('#table_kbba tbody').on('click', 'button.delete_kbba', function (){
+            var alay = table_kbba.row( $(this).parents('tr') ).data()['alay'];
+            var baku = table_kbba.row( $(this).parents('tr') ).data()['baku'];
+            $('#body-delete').text("You are delete '" + alay + " (alay) and "+ baku + "' (baku) from Kbba" );
+            $('#delete_save').click(function(){
+                $.ajax({
+                    type        : "POST",
+                    url         : "/admin/kbba/delete",
+                    data        : JSON.stringify( { "username": "{{username}}", "alay": alay, "baku": baku } ),
+                    contentType : "application/json; charset=utf-8",
+                    dataType    : "json",
+                    success     : function(resp){
+                                    table_kbba.ajax.reload(null, false);
+                                }
+                });
+            });
+        });
+
+        $('#table_kbba tbody').on('click', 'button.edit_kbba', function (){
+            var alay_before = table_kbba.row( $(this).parents('tr') ).data()['alay'];
+            var baku_before = table_kbba.row( $(this).parents('tr') ).data()['baku'];
+            $('#alay_before').val(alay_before); 
+            $('#baku_before').val(baku_before); 
+            $('#alay_after').val(""); 
+            $('#baku_after').val(""); 
+            $('#edit_save').click(function(){
+                var alay_after = $("#alay_after").val();
+                var baku_after = $("#baku_after").val();
+                $.ajax({
+                    type        : "POST",
+                    url         : "/admin/kbba/edit",
+                    data        : JSON.stringify( { "username": "{{username}}", "alay_before": alay_before, "alay_after": alay_after, "baku_before": baku_before, "baku_after": baku_after } ),
+                    contentType : "application/json; charset=utf-8",
+                    dataType    : "json",
+                    success     : function(resp){
+                                    table_kbba.ajax.reload(null, false);
+                                }
+                });
+            });
+        });
+        $('#add_kbba').click(function(){ 
+            $("#input_alay").val("");
+            $("#input_baku").val("");
+        });
+        
+        $('#add_save').click(function(){ 
+                var alay = $("#input_alay").val();
+                var baku = $("#input_baku").val();
+                $.ajax({
+                    type        : "POST",
+                    url         : "/admin/kbba/add",
+                    data        : JSON.stringify( { "username": "{{username}}", "alay": alay , "baku":baku} ),
+                    contentType : "application/json; charset=utf-8",
+                    dataType    : "json",
+                    success     : function(resp){
+                                    table_kbba.ajax.reload(null, false);
+                                }
+                });
+            });
+
+        setTimeout(executeQuery, 60000);
+
+    });
+</script>
+{% endblock javascripts %}

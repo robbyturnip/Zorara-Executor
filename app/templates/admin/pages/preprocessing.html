@@ -1,0 +1,103 @@
+{% extends "admin/layout/index.html" %}
+
+{% block stylesheets %}
+
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div id="cover-spin"></div>
+<div style="height: 100% !important">
+    <div class="card-header py-3 mb-4">
+        <h6 class="m-0 font-weight-bold text-gray-800">Preprocessing</h6>
+    </div>
+    <div class="row" style="margin-left:0 !important; margin-right:0 !important">
+        <div class="col col-lg-12">
+            <table id="table_preprocessing" class="table table-striped table-bordered"  width="100%">
+                <thead>
+                    <tr>
+                        <th>Keyword</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+          
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+
+    $(document).ready(function() {
+        
+        session_preprocessing = "{{preprocessing}}";
+        console.log(session_preprocessing)
+        if(session_preprocessing == "[]"){
+            $("#cover-spin").css("display", "none");
+        };
+
+        var table_preprocessing = $('#table_preprocessing').DataTable( {
+                                        "ajax": {
+                                            "type"          : "POST",
+                                            "url"           : "/admin/table/preprocessing",
+                                            "data"          : function () {
+                                                                return JSON.stringify(  {"username": "{{username}}"} );
+                                                            },
+                                            "contentType"   : "application/json; charset=utf-8",
+                                            "dataType"      : "json",
+                                        },
+                                        "scrollX": true,
+                                        "columns": [
+                                            {   "data": "keyword" },
+                                            {   "data": "total" },
+                                            {   "data": null,
+                                                render: function (data, type, row) {
+                                                    return '<button class="btn btn-success preprocessingKeyword">PREPROCESSING</button>'
+                                                },
+                                                "targets": -1
+                                            }
+                                        ]
+                                    });
+        function executeQuery(){
+            $.ajax({
+                type        : "POST",
+                url         : "/admin/preprocessing/checkpreprocessing",
+                data        : JSON.stringify({ username: "{{username}}" }),
+                contentType : "application/json; charset=utf-8",
+                dataType    : "json",
+                success     : function(resp){
+                                    statuspreprocessing =  resp['statuspreprocessing']
+                                    console.log(statuspreprocessing)
+                                    if (statuspreprocessing == 0){
+                                        $("#cover-spin").css("display", "none");
+                                        table_preprocessing.ajax.reload(null, false);
+                                    }
+                            }
+            });
+            table_preprocessing.ajax.reload(null, false);
+            setTimeout(executeQuery, 60000);
+        };
+        setTimeout(executeQuery, 60000);
+        $('#table_preprocessing tbody').on('click', 'button.preprocessingKeyword', function (){
+            var keyword = table_preprocessing.row( $(this).parents('tr') ).data()['keyword'];
+            $.ajax({
+                type        : "POST",
+                url         : "/admin/table/preprocessing/proces",
+                data        : JSON.stringify( { "username": "{{username}}", "keyword": keyword } ),
+                contentType : "application/json; charset=utf-8",
+                dataType    : "json",
+                beforeSend: function() {
+                                $("#cover-spin").css("display", "block");
+                            },
+                error: function(){
+                                console.log('errorr');
+                                $("#cover-spin").css("display", "none");
+                            }
+            });
+        });
+    });
+</script>
+{% endblock javascripts %}
