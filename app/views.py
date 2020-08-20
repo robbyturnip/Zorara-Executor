@@ -1,5 +1,5 @@
 
-import os, logging , threading, json, MySQLdb.cursors
+import os, logging , threading, json
 import concurrent.futures
 from time                import sleep
 from app.models          import Model
